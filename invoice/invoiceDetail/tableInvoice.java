@@ -20,7 +20,7 @@ public class tableInvoice extends AbstractTableModel {
 			new ArrayList<String>( Arrays.asList(Tools.getConfig("rtvat_type").split(",")));
 	private ArrayList<String> listRTSVat = 
 			new ArrayList<String>( Arrays.asList(Tools.getConfig("rtsvat_type").split(",")));
-	private ArrayList<String> discountVat = 
+	private ArrayList<String> discountType = 
 			new ArrayList<String>( Arrays.asList(Tools.getConfig("discount_type").split(",")));
 	private float totalVat;
 	private float totalNotVat;
@@ -142,32 +142,46 @@ public class tableInvoice extends AbstractTableModel {
 		int colType  = 1;
 		float total = 0;
 		float vat = 0;
-
+		Boolean isRTType = false;
 		for(rowInvoice temp : listRowsData){
 			String type = temp.getElementData(colType);
 			float dataTotal = Float.parseFloat(temp.getElementData(colTotal));
 			int qtyAd = Integer.parseInt(temp.getElementData(2));
     		float price = Float.parseFloat(temp.getElementData(3));	
-			if(discountVat.contains(type)){
+			if(discountType.contains(type)){
 				dataTotal =  - price*qtyAd;
-//		    		int total = totalAd;
+				vat = vat + (- price*qtyAd);
 	    		temp.setElementData(String.format("%.2f",dataTotal), colTotal);
 			}else{
 				dataTotal =  price*qtyAd;
-//	    		int total = totalAd;
 				temp.setElementData(String.format("%.2f",dataTotal), colTotal);
 			}
     		if(listRTVat.contains(type)){
-				vat = vat+(dataTotal * calRTVat); 
+				vat = vat+dataTotal ; 
+				isRTType = true;
 			}else if(listRTSVat.contains(type)){
-				vat = vat+(dataTotal * calRTSVat);
+				vat = vat+dataTotal ;
+				isRTType = false;
 			}
+//    		if(listRTVat.contains(type)){
+//				vat = vat+(dataTotal * calRTVat); 
+//			}else if(listRTSVat.contains(type)){
+//				vat = vat+(dataTotal * calRTSVat);
+//			}
 
 			total = total + dataTotal; 
 		}
 		totalNotVat = total;
-		totalVat = vat;
-		totalIncludeVat = total+vat;
+		if(vat>0){
+			if(isRTType){
+				totalVat = vat * calRTVat;
+			}else{
+				totalVat = vat * calRTSVat;
+			}
+		}else{
+			totalVat = vat;
+		}
+		totalIncludeVat = total+totalVat;
 	}
 	public String getSumTotal(boolean hasVat){
 		String total = "0.00";
